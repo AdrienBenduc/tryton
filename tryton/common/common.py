@@ -1032,6 +1032,7 @@ PLOCK = Lock()
 def process_exception(exception, *args, **kwargs):
 
     rpc_execute = kwargs.get('rpc_execute', rpc.execute)
+    callback = kwargs.get('callback', None)
 
     if isinstance(exception, TrytonError):
         if exception.faultCode == 'BadFingerprint':
@@ -1062,7 +1063,13 @@ def process_exception(exception, *args, **kwargs):
                     process_exception(exception, *args2)
                 if args:
                     try:
-                        return rpc_execute(*args)
+                        if rpc_execute != rpc.execute:
+                            return rpc_execute(*args, **{
+                                'callback': callback,
+                                'callback_return': False,
+                                })
+                        else:
+                            return rpc_execute(*args)
                     except TrytonServerError, exception:
                         return process_exception(exception, *args,
                             rpc_execute=rpc_execute)
@@ -1233,7 +1240,8 @@ class RPCProgress(object):
             gobject.idle_add(self.process)
         return True
 
-    def run(self, process_exception_p=True, callback=None):
+    def run(self, process_exception_p=True, callback=None,
+            callback_return=None):
         self.process_exception_p = process_exception_p
         self.callback = callback
 
@@ -1245,7 +1253,7 @@ class RPCProgress(object):
                 watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
                 self.parent.get_window().set_cursor(watch)
             thread.start_new_thread(self.start, ())
-            return
+            return callback_return
         else:
             self.start()
             return self.process()
@@ -1254,12 +1262,15 @@ class RPCProgress(object):
         if self.parent and self.parent.get_window():
             self.parent.get_window().set_cursor(None)
         if self.exception:
+            import pdb;pdb.set_trace()
             if self.process_exception_p:
-                def rpc_execute(*args):
-                    return RPCProgress('execute',
-                        args).run(self.process_exception_p)
+                def rpc_execute(*args, **kwargs):
+                    return RPCProgress('execute', args).run(
+                        self.process_exception_p,
+                        callback=kwargs.get('callback', None),
+                        callback_return=kwargs.get('callback_return', None))
                 result = process_exception(self.exception, *self.args,
-                    rpc_execute=rpc_execute)
+                    rpc_execute=rpc_execute, callback=self.callback)
                 if result is False:
                     self.exception = RPCException(self.exception)
                 else:
@@ -1274,6 +1285,7 @@ class RPCProgress(object):
 
         if self.callback:
             self.callback(return_)
+            return False
         else:
             return return_()
 
