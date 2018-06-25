@@ -22,8 +22,11 @@ deps() {
         mingw-w64-i686-python2 \
         mingw-w64-i686-python2-setuptools \
         mingw-w64-i686-python2-pip \
-        mingw-w64-i686-python2-pygtk \
-        mingw-w64-i686-gtk-engine-murrine \
+        mingw-w64-i686-gtk3 \
+        mingw-w64-i686-python2-gobject \
+        mingw-w64-i686-python3-gobject \
+        mingw-w64-gtk-engine-unico \           # Repacement for mingw-w64-i686-gtk-engine-murrine 
+        mingw-w64-gtksourceview3 \
         mingw-w64-i686-python2-cx_Freeze
 
     pip install \
@@ -51,11 +54,11 @@ unpatch() {
 build() {
     clean
     local v; v=$(version)
-    patch "$v"
+    # patch "$v"
     python setup-freeze.py install_exe -d dist
     makensis -DVERSION="$v" setup.nsi
     makensis -DVERSION="$v" setup-single.nsi
-    unpatch
+    # unpatch
 }
 
 upload() {
