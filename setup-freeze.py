@@ -3,7 +3,7 @@ import re
 import sys
 import tempfile
 import user
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_call
 
 from cx_Freeze import setup, Executable
 
