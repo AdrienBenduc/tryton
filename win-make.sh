@@ -25,7 +25,6 @@ deps() {
         mingw-w64-i686-gtk3 \
         mingw-w64-i686-python2-gobject \
         mingw-w64-i686-python3-gobject \
-        mingw-w64-gtk-engine-unico \           # Repacement for mingw-w64-i686-gtk-engine-murrine 
         mingw-w64-gtksourceview3 \
         mingw-w64-i686-python2-cx_Freeze
 
